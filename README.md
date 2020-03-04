@@ -2,6 +2,8 @@ jotform-api-python
 ===============
 [JotForm API](http://api.jotform.com/docs/) - Python Client
 
+## Overview
+This fork is intended to modify the python jotform-api library such that it will be compatible with python 3, as well as modifying the code snippets so that they will work correctly.
 
 ### Installation
 
