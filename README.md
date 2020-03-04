@@ -9,12 +9,8 @@ This fork is intended to modify the python jotform-api library such that it will
 
 Install via git clone:
 
-        $ git clone git://github.com/jotform/jotform-api-python.git
+        $ git clone git://github.com/raysull/jotform-api-python.git
         $ cd jotform-api-python
-        
-Install via pip:
-
-        $ pip install jotform
         
 Install via pip (This version)
 
