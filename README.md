@@ -31,7 +31,7 @@ JotForm API requires API key for all user related calls. You can create your API
 Print all forms of the user
 
 ```python
-from jotform import *
+import jotform
 
 def main():
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 Get submissions of the latest form
 
 ```python
-from jotform import *
+import jotform
 
 def main():
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 Get latest 100 submissions ordered by creation date
 
 ```python
-from jotform import *
+import jotform
 
 def main():
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 Submission and form filter examples
 
 ```python
-from jotform import *
+import jotform
 
 def main():
 
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 Delete last 50 submissions
 
 ```python
-from jotform import *
+import jotform
 
 def main():
 
