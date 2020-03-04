@@ -6,22 +6,23 @@
 # copyright : 2013 Interlogy, LLC.
 # link : http://www.jotform.com
 # version : 1.0
-# package : JotFormAPI 
+# package : JotFormAPI
 
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import json
 from xml.dom.minidom import parseString
 
+
 class JotformAPIClient:
-    __baseUrl = 'https://api.jotform.com/'
-    __apiVersion = 'v1'
+    __baseUrl = "https://api.jotform.com/"
+    __apiVersion = "v1"
 
     __apiKey = None
     __debugMode = False
     __outputType = "json"
-    
-    def __init__(self, apiKey='', outputType='json', debug=False):
+
+    def __init__(self, apiKey="", outputType="json", debug=False):
 
         self.__apiKey = apiKey
         self.__debugMode = debug
@@ -29,70 +30,75 @@ class JotformAPIClient:
 
     def _log(self, message):
         if self.__debugMode:
-            print message
+            print(message)
 
     def set_baseurl(self, baseurl):
         self.__baseUrl = baseurl
 
     def get_debugMode(self):
         return self.__debugMode
+
     def set_debugMode(self, value):
         self.__debugMode = value
 
     def get_outputType(self):
         return self.__outputType
+
     def set_outputType(self, value):
         self.__outputType = value
 
     def fetch_url(self, url, params=None, method=None):
-        if(self.__outputType != 'json'):
-            url = url + '.xml'
+        if self.__outputType != "json":
+            url = url + ".xml"
 
         url = self.__baseUrl + self.__apiVersion + url
 
-        self._log('fetching url ' + url)
-        if (params):
+        self._log("fetching url " + url)
+        if params:
             self._log(params)
 
-        headers = {
-            'apiKey': self.__apiKey
-        }
+        headers = {"apiKey": self.__apiKey}
 
-        if (method == 'GET'):
-            if (params):
-                url = url + '?' + urllib.urlencode(params)
+        if method == "GET":
+            if params:
+                url = url + "?" + urllib.parse.urlencode(params)
 
-            req = urllib2.Request(url, headers=headers, data=None)
-        elif (method == 'POST'):
-            if (params):
-                data = urllib.urlencode(params)
+            req = urllib.request.Request(url, headers=headers, data=None)
+        elif method == "POST":
+            if params:
+                data = urllib.parse.urlencode(params).encode("utf-8")
             else:
                 data = None
-            req = urllib2.Request(url, headers=headers, data=data)
-        elif (method == 'DELETE'):
-            req = urllib2.Request(url, headers=headers, data=None)
-            req.get_method = lambda: 'DELETE'
-        elif (method == 'PUT'):
-            req = urllib2.Request(url, headers=headers, data=params)
-            req.get_method = lambda: 'PUT'
+            req = urllib.request.Request(url, headers=headers, data=data)
+        elif method == "DELETE":
+            req = urllib.request.Request(url, headers=headers, data=None)
+            req.get_method = lambda: "DELETE"
+        elif method == "PUT":
+            req = urllib.request.Request(url, headers=headers, data=params)
+            req.get_method = lambda: "PUT"
 
-        response = urllib2.urlopen(req)
+        response = urllib.request.urlopen(req)
 
-        if (self.__outputType == 'json'):
-            responseObject = json.loads(response.read())
-            return responseObject['content']
+        if self.__outputType == "json":
+            responseObject = json.loads(response.read().decode("utf-8"))
+            return responseObject["content"]
         else:
             data = response.read()
             response.close()
             return data
 
     def create_conditions(self, offset, limit, filterArray, order_by):
-        args = {'offset': offset, 'limit': limit, 'filter': filterArray, 'orderby': order_by}
+        args = {
+            "offset": offset,
+            "limit": limit,
+            "filter": filterArray,
+            "orderby": order_by,
+        }
         params = {}
 
-        for key in args.keys():
-            if(args[key]):
-                if(key == 'filter'):
+        for key in list(args.keys()):
+            if args[key]:
+                if key == "filter":
                     params[key] = json.dumps(args[key])
                 else:
                     params[key] = args[key]
@@ -100,11 +106,17 @@ class JotformAPIClient:
         return params
 
     def create_history_query(self, action, date, sortBy, startDate, endDate):
-        args = {'action': action, 'date': date, 'sortBy': sortBy, 'startDate': startDate, 'endDate': endDate}
+        args = {
+            "action": action,
+            "date": date,
+            "sortBy": sortBy,
+            "startDate": startDate,
+            "endDate": endDate,
+        }
         params = {}
 
-        for key in args.keys():
-            if (args[key]):
+        for key in list(args.keys()):
+            if args[key]:
                 params[key] = args[key]
 
         return params
@@ -116,7 +128,7 @@ class JotformAPIClient:
             User account type, avatar URL, name, email, website URL and account limits.
         """
 
-        return self.fetch_url('/user', method='GET')
+        return self.fetch_url("/user", method="GET")
 
     def get_usage(self):
         """Get number of form submissions received this month.
@@ -124,8 +136,8 @@ class JotformAPIClient:
         Returns:
             Number of submissions, number of SSL form submissions, payment form submissions and upload space used by user.
         """
-        
-        return self.fetch_url('/user/usage', method='GET')
+
+        return self.fetch_url("/user/usage", method="GET")
 
     def get_forms(self, offset=None, limit=None, filterArray=None, order_by=None):
         """Get a list of forms for this account
@@ -142,7 +154,7 @@ class JotformAPIClient:
 
         params = self.create_conditions(offset, limit, filterArray, order_by)
 
-        return self.fetch_url('/user/forms', params, 'GET')
+        return self.fetch_url("/user/forms", params, "GET")
 
     def get_submissions(self, offset=None, limit=None, filterArray=None, order_by=None):
         """Get a list of submissions for this account.
@@ -158,8 +170,8 @@ class JotformAPIClient:
         """
 
         params = self.create_conditions(offset, limit, filterArray, order_by)
-            
-        return self.fetch_url('/user/submissions', params, 'GET')
+
+        return self.fetch_url("/user/submissions", params, "GET")
 
     def get_subusers(self):
         """Get a list of sub users for this account.
@@ -168,7 +180,7 @@ class JotformAPIClient:
             List of forms and form folders with access privileges.
         """
 
-        return self.fetch_url('/user/subusers', method='GET')
+        return self.fetch_url("/user/subusers", method="GET")
 
     def get_folders(self):
         """Get a list of form folders for this account.
@@ -177,7 +189,7 @@ class JotformAPIClient:
             Name of the folder and owner of the folder for shared folders.
         """
 
-        return self.fetch_url('/user/folders', method='GET')
+        return self.fetch_url("/user/folders", method="GET")
 
     def get_reports(self):
         """List of URLS for reports in this account.
@@ -186,7 +198,7 @@ class JotformAPIClient:
             Reports for all of the forms. ie. Excel, CSV, printable charts, embeddable HTML tables.
         """
 
-        return self.fetch_url('/user/reports', method='GET')
+        return self.fetch_url("/user/reports", method="GET")
 
     def get_settings(self):
         """Get user's settings for this account.
@@ -194,8 +206,8 @@ class JotformAPIClient:
         Returns:
             User's time zone and language.
         """
-        
-        return self.fetch_url('/user/settings', method='GET')
+
+        return self.fetch_url("/user/settings", method="GET")
 
     def update_settings(self, settings):
         """Update user's settings.
@@ -207,9 +219,11 @@ class JotformAPIClient:
             Changes on user settings.
         """
 
-        return self.fetch_url('/user/settings', settings, 'POST')
+        return self.fetch_url("/user/settings", settings, "POST")
 
-    def get_history(self, action=None, date=None, sortBy=None, startDate=None, endDate=None):
+    def get_history(
+        self, action=None, date=None, sortBy=None, startDate=None, endDate=None
+    ):
         """Get user activity log.
 
         Args: 
@@ -225,7 +239,7 @@ class JotformAPIClient:
 
         params = self.create_history_query(action, date, sortBy, startDate, endDate)
 
-        return self.fetch_url('/user/history', params, 'GET')
+        return self.fetch_url("/user/history", params, "GET")
 
     def get_form(self, formID):
         """Get basic information about a form.
@@ -237,7 +251,7 @@ class JotformAPIClient:
             Form ID, status, update and creation dates, submission count etc.
         """
 
-        return self.fetch_url('/form/' + formID, method='GET')
+        return self.fetch_url("/form/" + formID, method="GET")
 
     def get_form_questions(self, formID):
         """Get a list of all questions on a form.
@@ -249,9 +263,9 @@ class JotformAPIClient:
             Question properties of a form.
         """
 
-        return self.fetch_url('/form/' + formID + '/questions', method='GET')
+        return self.fetch_url("/form/" + formID + "/questions", method="GET")
 
-    def get_form_question(self, formID,  qid):
+    def get_form_question(self, formID, qid):
         """Get details about a question
 
         Args:
@@ -261,9 +275,11 @@ class JotformAPIClient:
         Returns:
             Question properties like required and validation.
         """
-        return self.fetch_url('/form/' + formID + '/question/' + qid, method='GET')
+        return self.fetch_url("/form/" + formID + "/question/" + qid, method="GET")
 
-    def get_form_submissions(self, formID, offset=None, limit=None, filterArray=None, order_by=None):
+    def get_form_submissions(
+        self, formID, offset=None, limit=None, filterArray=None, order_by=None
+    ):
         """List of a form submissions.
 
         Args:
@@ -279,7 +295,7 @@ class JotformAPIClient:
 
         params = self.create_conditions(offset, limit, filterArray, order_by)
 
-        return self.fetch_url('/form/' + formID + '/submissions', params, 'GET')
+        return self.fetch_url("/form/" + formID + "/submissions", params, "GET")
 
     def create_form_submission(self, formID, submission):
         """Submit data to this form using the API.
@@ -296,11 +312,17 @@ class JotformAPIClient:
 
         for key in submission.keys():
             if "_" in key:
-                sub['submission[' + key[0:key.find("_")] + '][' + key[key.find("_")+1:len(key)] + ']'] = submission[key]
+                sub[
+                    "submission["
+                    + key[0 : key.find("_")]
+                    + "]["
+                    + key[key.find("_") + 1 : len(key)]
+                    + "]"
+                ] = submission[key]
             else:
-                sub['submission[' + key + ']'] = submission[key]
+                sub["submission[" + key + "]"] = submission[key]
 
-        return self.fetch_url('/form/' + formID + '/submissions', sub, 'POST')
+        return self.fetch_url("/form/" + formID + "/submissions", sub, "POST")
 
     def create_form_submissions(self, formID, submissions):
         """Submit data to this form using the API.
@@ -313,7 +335,7 @@ class JotformAPIClient:
             Posted submission ID and URL.
         """
 
-        return self.fetch_url('/form/' + formID + '/submissions', submissions, 'PUT')
+        return self.fetch_url("/form/" + formID + "/submissions", submissions, "PUT")
 
     def get_form_files(self, formID):
         """List of files uploaded on a form.
@@ -325,7 +347,7 @@ class JotformAPIClient:
             Uploaded file information and URLs on a specific form.
         """
 
-        return self.fetch_url('/form/' + formID + '/files', method='GET')
+        return self.fetch_url("/form/" + formID + "/files", method="GET")
 
     def get_form_webhooks(self, formID):
         """Get list of webhooks for a form
@@ -337,7 +359,7 @@ class JotformAPIClient:
             List of webhooks for a specific form.
         """
 
-        return self.fetch_url('/form/' + formID + '/webhooks', method='GET')
+        return self.fetch_url("/form/" + formID + "/webhooks", method="GET")
 
     def create_form_webhook(self, formID, webhookURL):
         """Add a new webhook
@@ -350,9 +372,9 @@ class JotformAPIClient:
             List of webhooks for a specific form.
         """
 
-        params = {'webhookURL': webhookURL}
+        params = {"webhookURL": webhookURL}
 
-        return self.fetch_url('/form/' + formID + '/webhooks', params, 'POST')
+        return self.fetch_url("/form/" + formID + "/webhooks", params, "POST")
 
     def delete_form_webhook(self, formID, webhookID):
         """Delete a specific webhook of a form.
@@ -365,7 +387,9 @@ class JotformAPIClient:
             Remaining webhook URLs of form.
         """
 
-        return self.fetch_url('/form/' + formID + '/webhooks/' + webhookID, None, 'DELETE')
+        return self.fetch_url(
+            "/form/" + formID + "/webhooks/" + webhookID, None, "DELETE"
+        )
 
     def get_submission(self, sid):
         """Get submission data
@@ -377,7 +401,7 @@ class JotformAPIClient:
             Information and answers of a specific submission.
         """
 
-        return self.fetch_url('/submission/' + sid, method='GET')
+        return self.fetch_url("/submission/" + sid, method="GET")
 
     def get_report(self, reportID):
         """Get report details
@@ -389,7 +413,7 @@ class JotformAPIClient:
             Properties of a speceific report like fields and status.
         """
 
-        return self.fetch_url('/report/' + reportID, method='GET')
+        return self.fetch_url("/report/" + reportID, method="GET")
 
     def get_folder(self, folderID):
         """Get folder details
@@ -401,7 +425,7 @@ class JotformAPIClient:
             A list of forms in a folder, and other details about the form such as folder color.
         """
 
-        return self.fetch_url('/folder/' + folderID, method='GET')
+        return self.fetch_url("/folder/" + folderID, method="GET")
 
     def get_form_properties(self, formID):
         """Get a list of all properties on a form.
@@ -413,7 +437,7 @@ class JotformAPIClient:
             Form properties like width, expiration date, style etc.
         """
 
-        return self.fetch_url('/form/' + formID + '/properties', method='GET')
+        return self.fetch_url("/form/" + formID + "/properties", method="GET")
 
     def get_form_property(self, formID, propertyKey):
         """Get a specific property of the form.
@@ -426,7 +450,9 @@ class JotformAPIClient:
             Given property key value.
         """
 
-        return self.fetch_url('/form/' + formID + '/properties/' + propertyKey, method='GET')
+        return self.fetch_url(
+            "/form/" + formID + "/properties/" + propertyKey, method="GET"
+        )
 
     def get_form_reports(self, formID):
         """Get all the reports of a form, such as excel, csv, grid, html, etc.
@@ -438,7 +464,7 @@ class JotformAPIClient:
             List of all reports in a form, and other details about the reports such as title.
         """
 
-        return self.fetch_url('/form/' + formID + '/reports', method='GET')
+        return self.fetch_url("/form/" + formID + "/reports", method="GET")
 
     def create_report(self, formID, report):
         """Create new report of a form
@@ -450,7 +476,7 @@ class JotformAPIClient:
         Returns:
             Report details and URL
         """
-        return self.fetch_url('/form/' + formID + '/reports', report, 'POST')
+        return self.fetch_url("/form/" + formID + "/reports", report, "POST")
 
     def delete_submission(self, sid):
         """Delete a single submission.
@@ -462,7 +488,7 @@ class JotformAPIClient:
             Status of request.
         """
 
-        return self.fetch_url('/submission/' + sid, None, 'DELETE')
+        return self.fetch_url("/submission/" + sid, None, "DELETE")
 
     def edit_submission(self, sid, submission):
         """Edit a single submission.
@@ -478,12 +504,18 @@ class JotformAPIClient:
         sub = {}
 
         for key in submission.keys():
-            if '_' in key and key != "created_at":
-                sub['submission[' + key[0:key.find('_')] + '][' + key[key.find('_')+1:len(key)] + ']'] = submission[key]
+            if "_" in key and key != "created_at":
+                sub[
+                    "submission["
+                    + key[0 : key.find("_")]
+                    + "]["
+                    + key[key.find("_") + 1 : len(key)]
+                    + "]"
+                ] = submission[key]
             else:
-                sub['submission[' + key + ']'] = submission[key]
-               
-        return self.fetch_url('/submission/' + sid, sub, 'POST')
+                sub["submission[" + key + "]"] = submission[key]
+
+        return self.fetch_url("/submission/" + sid, sub, "POST")
 
     def clone_form(self, formID):
         """Clone a single form.
@@ -495,8 +527,8 @@ class JotformAPIClient:
             Status of request.
         """
         params = {"method": "post"}
-        
-        return self.fetch_url('/form/' + formID + '/clone', params, 'POST')
+
+        return self.fetch_url("/form/" + formID + "/clone", params, "POST")
 
     def delete_form_question(self, formID, qid):
         """Delete a single form question.
@@ -509,7 +541,7 @@ class JotformAPIClient:
             Status of request.
         """
 
-        return self.fetch_url('/form/' + formID + '/question/' + qid, None, 'DELETE')
+        return self.fetch_url("/form/" + formID + "/question/" + qid, None, "DELETE")
 
     def create_form_question(self, formID, question):
         """Add new question to specified form.
@@ -524,9 +556,9 @@ class JotformAPIClient:
         params = {}
 
         for key in question.keys():
-            params['question[' + key + ']'] = question[key]
+            params["question[" + key + "]"] = question[key]
 
-        return self.fetch_url('/form/' + formID + '/questions', params, 'POST')
+        return self.fetch_url("/form/" + formID + "/questions", params, "POST")
 
     def create_form_questions(self, formID, questions):
         """Add new questions to specified form.
@@ -539,7 +571,7 @@ class JotformAPIClient:
             Properties of new question.
         """
 
-        return self.fetch_url('/form/' + formID + '/questions', questions, 'PUT')
+        return self.fetch_url("/form/" + formID + "/questions", questions, "PUT")
 
     def edit_form_question(self, formID, qid, question_properties):
         """Add or edit a single question properties.
@@ -555,9 +587,9 @@ class JotformAPIClient:
         question = {}
 
         for key in question_properties.keys():
-            question['question[' + key + ']'] = question_properties[key]
+            question["question[" + key + "]"] = question_properties[key]
 
-        return self.fetch_url('/form/' + formID + '/question/' + qid, question, 'POST')
+        return self.fetch_url("/form/" + formID + "/question/" + qid, question, "POST")
 
     def set_form_properties(self, formID, form_properties):
         """Add or edit properties of a specific form
@@ -572,9 +604,9 @@ class JotformAPIClient:
         properties = {}
 
         for key in form_properties.keys():
-            properties['properties[' + key + ']'] = form_properties[key]
+            properties["properties[" + key + "]"] = form_properties[key]
 
-        return self.fetch_url('/form/' + formID + '/properties', properties, 'POST')
+        return self.fetch_url("/form/" + formID + "/properties", properties, "POST")
 
     def set_multiple_form_properties(self, formID, form_properties):
         """Add or edit properties of a specific form
@@ -587,7 +619,7 @@ class JotformAPIClient:
             Edited properties.
         """
 
-        return self.fetch_url('/form/' + formID + '/properties', form_properties, 'PUT')
+        return self.fetch_url("/form/" + formID + "/properties", form_properties, "PUT")
 
     def create_form(self, form):
         """ Create a new form
@@ -604,15 +636,15 @@ class JotformAPIClient:
         for key in form.keys():
             value = form[key]
             for k in value.keys():
-                if (key == 'properties'):
+                if key == "properties":
                     for k in value.keys():
-                        params[key + '[' + k + ']'] = value[k]
+                        params[key + "[" + k + "]"] = value[k]
                 else:
                     v = value[k]
                     for a in v.keys():
-                        params[key + '[' + k + '][' + a + ']'] =v[a]
+                        params[key + "[" + k + "][" + a + "]"] = v[a]
 
-        return self.fetch_url('/user/forms', params, 'POST')
+        return self.fetch_url("/user/forms", params, "POST")
 
     def create_forms(self, form):
         """ Create new forms
@@ -624,7 +656,7 @@ class JotformAPIClient:
             New forms.
         """
 
-        return self.fetch_url('/user/forms', form, 'PUT')
+        return self.fetch_url("/user/forms", form, "PUT")
 
     def delete_form(self, formID):
         """Delete a specific form
@@ -636,7 +668,7 @@ class JotformAPIClient:
             Properties of deleted form.
         """
 
-        return self.fetch_url('/form/' + formID, None, 'DELETE')
+        return self.fetch_url("/form/" + formID, None, "DELETE")
 
     def register_user(self, userDetails):
         """Register with username, password and email
@@ -648,7 +680,7 @@ class JotformAPIClient:
             New user's details
         """
 
-        return self.fetch_url('/user/register', userDetails, 'POST')
+        return self.fetch_url("/user/register", userDetails, "POST")
 
     def login_user(self, credentials):
         """Login user with given credentials
@@ -660,7 +692,7 @@ class JotformAPIClient:
             Logged in user's settings and app key
         """
 
-        return self.fetch_url('/user/login', credentials, 'POST')
+        return self.fetch_url("/user/login", credentials, "POST")
 
     def logout_user(self):
         """Logout user
@@ -668,8 +700,8 @@ class JotformAPIClient:
         Returns:
             Status of request
         """
-        
-        return self.fetch_url('/user/logout', method='GET')
+
+        return self.fetch_url("/user/logout", method="GET")
 
     def get_plan(self, plan_name):
         """Get details of a plan
@@ -681,7 +713,7 @@ class JotformAPIClient:
             Details of a plan
         """
 
-        return self.fetch_url('/system/plan/' + plan_name, method='GET')
+        return self.fetch_url("/system/plan/" + plan_name, method="GET")
 
     def delete_report(self, reportID):
         """Delete a specific report
@@ -693,4 +725,4 @@ class JotformAPIClient:
             Status of request.
         """
 
-        return self.fetch_url('/report/' + reportID, None, 'DELETE')
+        return self.fetch_url("/report/" + reportID, None, "DELETE")
